@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script>
+	$(document).ready(function(){
+		$('#formButton1').on('click', formSubmit1);
+		$('#formButton2').on('click', formSubmit2);
+		$('#formButton3').on('click', formSubmit3);
+		$('#bt1').on('click', getObjectAsString);
+		$('#bt2').on('click', getObjectAsJSON);
+		$('#bt3').on('click', getList);
+		$('#bt4').on('click', postList);
+		$('#bt5').on('click', postObjectList);
+	});
+	
+	function formSubmit1(){
+		let name = $('#name1').val();
+		let age = $('#age1').val();
+		let phone = $('#phone1').val();
+		
+		$.ajax({
+			url : 'formSubmit1',
+			type : 'post',
+			data : {name : name, age: age, phone: phone},
+			success : function () {
+				alert('저장');
+				$('#name1').val('');
+				$('#age1').val('0');
+				$('#phone1').val('');
+			},
+			error : function (e){
+				alert('저장 실패');
+			}
+		})		
+	}
+	
+	function formSubmit2(){
+		
+		const formData = {
+			name : $('#name2').val(),
+			age : $('#age2').val(),
+			phone : $('#phone2').val()				
+		};
+
+		$.ajax({
+			url : 'formSubmit2',
+			type : 'post',
+			data : JSON.stringify(formData),
+			contentType : 'application/json',
+			success : function () {
+				alert('저장');
+				$('#name2').val('');
+				$('#age2').val('0');
+				$('#phone2').val('');
+			},
+			error : function (e){
+				alert('저장 실패');
+			}
+		})
+	}
+	
+	function formSubmit3(){
+
+		$.ajax({
+			url : 'formSubmit3',
+			type : 'post',
+			/* 
+				HTML <form> 요소의 입력된 데이터를 URL 인코딩 형식의 문자열로 변환해주는 jQuery 메소드
+				key=value&key2=value2 형태의 문자열로 만들어줌
+				쿼리 파라미터로 만들어주기 때문에 <form> 태그의 name 속성이 반드시 정의되어 있어야 함
+			*/
+			data : $('#writeForm3').serialize(),
+			success : function () {
+				alert('저장');
+				$('#name3').val('');
+				$('#age3').val('0');
+				$('#phone3').val('');
+			},
+			error : function (e){
+				alert('저장 실패');
+			}
+		})
+	}
+	
+	function getObjectAsString(){
+		$.ajax({
+			url: 'getObject',
+			type : 'get',
+			dataType : 'text',
+			success : function(ob) {
+				alert(typeof ob);
+				
+				let parsed = JSON.parse(ob);
+				alert(typeof parsed);
+				
+				$('#result1').html(ob);
+			},
+			error : function () {
+				alert('실패');
+			}
+		})
+	}
+	
+	function getObjectAsJSON(){
+		$.ajax({
+			url: 'getObject',
+			type : 'get',
+			dataType : 'json',
+			success : function(ob) {
+				alert(typeof ob);
+				
+				let str = `
+					이름 : ${ob.name}<br>
+					나이 : ${ob.age}<br>
+					전화 : ${ob.phone}<br>
+				`;
+				$('#result2').html(str);
+			},
+			error : function () {
+				alert('실패');
+			}
+		})
+	}
+	
+	function getList() {
+		$.ajax({
+			url : 'getList',
+			type : 'get',
+			dataType : 'json',
+			success : function (list) {
+				let str = `<table>`;
+				$(list).each(function(idx, ob){
+					str += `
+						<tr>
+							<td>${idx}</td>
+							<td>${ob.name}</td>
+							<td>${ob.age}</td>
+							<td>${ob.phone}</td>
+						</tr>`;
+				});
+				str += `</table>`;
+				$('#result3').html(str);
+			},
+			error : function(){
+				alert('실패');
+			}
+		});
+	}
+	
+	function postList() {
+		
+		let ar = ['aaa', 'bbb' ,'ccc'];
+		
+		$.ajax({
+			url : 'postList',
+			type : 'post',
+			data : { ar : ar},
+			success : function () {
+				alert("저장되었습니다");
+			},
+			error : function () {
+				alert("실패");
+			}
+		})
+	}
+	
+	function postObjectList() {
+		let obList = [
+			{name : 'aaa', age : 11, phone : '011'},
+			{name : 'bbb', age : 12, phone : '012'}
+		];
+		
+		$.ajax({
+			url : 'postObjectList',
+			type : 'post',
+			data : JSON.stringify(obList),
+			contentType : 'application/json',
+			dataType : 'json',
+			success : function(list){
+				let result = `<table>`;
+				$(list).each(function (idx, ob){
+					result += `
+							<tr>
+								<td>${idx}</td>
+								<td>${ob.name}</td>
+								<td>${ob.age}</td>
+								<td>${ob.phone}</td>
+							<tr>`;
+				});
+				result += '</table';
+				$('#result4').html(result);
+			},
+			error: function(error){
+				alert('실패');
+			}
+		})
+	}
+</script>
+</head>
+<body>
+	<h1>[ Ajax 테스트 2 - 객체 ]</h1>
+	
+	<h3>1. 서버로 각각의 parameter 전달</h3>
+	<form id="writeForm1">
+		이름 <input type="text" id="name1"><br>
+		나이 <input type="number" id="age1"><br>
+		전화 <input type="text" id="phone1"><br>
+		<button type="button" id="formButton1">저장</button>
+	</form>
+	
+	<h3>2. 서버로 JSON 전달</h3>
+	<form id="writeForm2">
+		이름 <input type="text" id="name2"><br>
+		나이 <input type="number" id="age2"><br>
+		전화 <input type="text" id="phone2"><br>
+		<button type="button" id="formButton2">저장</button>
+	</form>
+	
+	<h3>3. 서버로 객체 전달</h3>
+	<form id="writeForm3">
+		이름 <input type="text" id="name3" name="name"><br>
+		나이 <input type="number" id="age3" name="age"><br>
+		전화 <input type="text" id="phone3" name="phone"><br>
+		<button type="button" id="formButton3">저장</button>
+	</form>
+	
+	<h3>4. 서버로부터 객체를 문자열로 받기</h3>
+	<button type="button" id="bt1">서버로부터 객체 받기(문자열)</button>
+	<div id="result1"></div>
+	
+	<h3>5. 서버로부터 객체를 JSON으로 받기</h3>
+	<button type="button" id="bt2">서버로부터 객체 받기(JSON)</button>
+	<div id="result2"></div>
+	
+	<h3>6. 서버로부터 객체를 리스트 받기</h3>
+	<button type="button" id="bt3">서버로부터 리스트 받기</button>
+	<div id="result3"></div>
+	
+	<h3>7. 서버로 배열 보내기</h3>
+	<button type="button" id="bt4">배열 전송</button>
+	
+	<h3>8. 서버로 객체 배열 보내기</h3>
+	<button type="button" id="bt5">객체 배열 전송</button>
+	<div id="result4"></div>
+</body>
+</html>
